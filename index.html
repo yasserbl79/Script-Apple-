@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الاجتماعات</title>
+    <!-- تضمين Tailwind CSS من CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* استيراد خط Inter ليكون الخط الأساسي */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        /* تطبيق الخط على كامل الصفحة وتحديد الاتجاه */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eef2f9; /* لون خلفية ناعم */
+            color: #374151; /* لون النص الأساسي */
+            direction: rtl;
+            text-align: right;
+        }
+
+        /* تنسيق عام للحاوية */
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* تنسيق بطاقة (Card) التطبيق */
+        .card {
+            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2.5rem;
+        }
+
+        /* تنسيق حقول الإدخال */
+        .form-input {
+            width: 100%;
+            padding: 0.8rem 1.25rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease-in-out;
+            background-color: #f9fafb;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+            background-color: white;
+        }
+
+        /* تنسيق الأزرار */
+        .btn {
+            font-weight: 600;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* أزرق جذاب */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        .btn-green {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-green:hover {
+            background-color: #059669;
+        }
+        .btn-red {
+            background-color: #ef4444;
+            color: white;
+        }
+        .btn-red:hover {
+            background-color: #dc2626;
+        }
+        .btn-gray {
+            background-color: #e5e7eb;
+            color: #4b5563;
+        }
+        .btn-gray:hover {
+            background-color: #d1d5db;
+        }
+        
+        /* تنسيق الجدول */
+        .table-header th {
+            padding: 1.25rem 1rem;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-align: right;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .table-row td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+        .table-row:hover {
+            background-color: #f9fafb;
+        }
+
+        /* تنسيق نافذة التأكيد (Modal) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            max-width: 450px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- قائمة الاجتماعات -->
+    <div id="list-view" class="card">
+        <h1 class="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-10">إدارة الاجتماعات</h1>
+        <div class="text-center mb-10">
+            <button id="add-meeting-btn" class="btn btn-primary text-lg">
+                <span class="ml-2">➕</span> إضافة اجتماع جديد
+            </button>
+        </div>
+        <div class="overflow-x-auto rounded-lg shadow-inner">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="table-header">
+                        <th>عنوان الاجتماع</th>
+                        <th>التاريخ</th>
+                        <th>الوقت</th>
+                        <th>المكان</th>
+                        <th>الحضور</th>
+                        <th class="text-left">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="meetings-table-body">
+                    <!-- سيتم إضافة صفوف الاجتماعات هنا بواسطة JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- نموذج إضافة/تعديل اجتماع -->
+    <div id="add-edit-view" class="card hidden">
+        <h2 id="form-title" class="text-3xl font-bold text-center text-gray-800 mb-8">إضافة اجتماع جديد</h2>
+        <form id="meeting-form" class="space-y-6">
+            <input type="hidden" id="meeting-id">
+            <div>
+                <label for="title" class="block text-gray-700 font-semibold mb-2">عنوان الاجتماع</label>
+                <input type="text" id="title" name="title" class="form-input" required>
+            </div>
+            <div>
+                <label for="date-time" class="block text-gray-700 font-semibold mb-2">التاريخ والوقت</label>
+                <div class="flex gap-4">
+                    <input type="date" id="date" name="date" class="form-input" required>
+                    <input type="time" id="time" name="time" class="form-input" required>
+                </div>
+            </div>
+            <div>
+                <label for="location" class="block text-gray-700 font-semibold mb-2">المكان (أو رابط الاجتماع)</label>
+                <input type="text" id="location" name="location" class="form-input" required>
+            </div>
+            <div>
+                <label for="attendees" class="block text-gray-700 font-semibold mb-2">قائمة الحضور (افصل بين الأسماء بفاصلة)</label>
+                <textarea id="attendees" name="attendees" rows="4" class="form-input" placeholder="مثال: أحمد, سارة، محمد"></textarea>
+            </div>
+            <div class="flex justify-center gap-4 mt-8">
+                <button type="submit" class="btn btn-green">حفظ الاجتماع</button>
+                <button type="button" id="cancel-form-btn" class="btn btn-gray">إلغاء</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- تفاصيل الاجتماع -->
+    <div id="view-details-view" class="card hidden">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">تفاصيل الاجتماع</h2>
+        <div class="space-y-6 text-gray-700 text-lg">
+            <p><span class="font-bold text-gray-900">عنوان الاجتماع:</span> <span id="view-title"></span></p>
+            <p><span class="font-bold text-gray-900">التاريخ:</span> <span id="view-date"></span></p>
+            <p><span class="font-bold text-gray-900">الوقت:</span> <span id="view-time"></span></p>
+            <p><span class="font-bold text-gray-900">المكان:</span> <span id="view-location"></span></p>
+            <div>
+                <span class="font-bold text-gray-900 block mb-2">الحضور:</span>
+                <ul id="view-attendees" class="list-disc pr-6 space-y-1"></ul>
+            </div>
+        </div>
+        <div class="flex justify-center gap-4 mt-8">
+            <button id="edit-details-btn" class="btn btn-primary">تعديل</button>
+            <button id="end-meeting-btn" class="btn btn-red">إنهاء الاجتماع</button>
+            <button id="back-to-list-btn" class="btn btn-gray">العودة للقائمة</button>
+        </div>
+    </div>
+    
+    <!-- نافذة تأكيد مخصصة -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <p id="modal-message" class="text-xl text-gray-800 mb-6 font-semibold"></p>
+            <div class="flex justify-center gap-4">
+                <button id="confirm-yes-btn" class="btn btn-red">نعم</button>
+                <button id="confirm-no-btn" class="btn btn-gray">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // بيانات الاجتماعات الأولية
+    let meetings = [
+        {
+            id: '1',
+            title: 'اجتماع تطوير المنتج',
+            date: '2024-08-15',
+            time: '10:00',
+            location: 'مكتب رقم 5',
+            attendees: 'أحمد, سارة, محمد'
+        },
+        {
+            id: '2',
+            title: 'اجتماع الميزانية السنوية',
+            date: '2024-08-18',
+            time: '14:30',
+            location: 'رابط زوم: zoom.us/meeting/12345',
+            attendees: 'فاطمة, علي, نورة'
+        }
+    ];
+
+    // عناصر الواجهة الرسومية (DOM Elements)
+    const listMeetingsView = document.getElementById('list-view');
+    const addEditMeetingView = document.getElementById('add-edit-view');
+    const viewDetailsView = document.getElementById('view-details-view');
+    const meetingsTableBody = document.getElementById('meetings-table-body');
+    const addMeetingBtn = document.getElementById('add-meeting-btn');
+    const meetingForm = document.getElementById('meeting-form');
+    const formTitle = document.getElementById('form-title');
+    const cancelFormBtn = document.getElementById('cancel-form-btn');
+    const backToListBtn = document.getElementById('back-to-list-btn');
+    const endMeetingBtn = document.getElementById('end-meeting-btn');
+    const editDetailsBtn = document.getElementById('edit-details-btn');
+    const confirmModal = document.getElementById('confirm-modal');
+    const modalMessage = document.getElementById('modal-message');
+    const confirmYesBtn = document.getElementById('confirm-yes-btn');
+    const confirmNoBtn = document.getElementById('confirm-no-btn');
+    
+    let currentMeetingId = null;
+
+    // دالة للتبديل بين الصفحات
+    function showView(view) {
+        listMeetingsView.classList.add('hidden');
+        addEditMeetingView.classList.add('hidden');
+        viewDetailsView.classList.add('hidden');
+        if (view === 'list') {
+            listMeetingsView.classList.remove('hidden');
+            renderMeetingsTable();
+        } else if (view === 'add-edit') {
+            addEditMeetingView.classList.remove('hidden');
+        } else if (view === 'view-details') {
+            viewDetailsView.classList.remove('hidden');
+        }
+    }
+
+    // دالة لعرض جدول الاجتماعات
+    function renderMeetingsTable() {
+        meetingsTableBody.innerHTML = '';
+        if (meetings.length === 0) {
+            meetingsTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">لا توجد اجتماعات مجدولة.</td></tr>`;
+            return;
+        }
+
+        meetings.forEach(meeting => {
+            const row = document.createElement('tr');
+            row.className = 'table-row';
+            row.innerHTML = `
+                <td>${meeting.title}</td>
+                <td>${meeting.date}</td>
+                <td>${meeting.time}</td>
+                <td>${meeting.location}</td>
+                <td>${meeting.attendees.split(',').filter(Boolean).length}</td>
+                <td class="flex gap-2">
+                    <button class="text-blue-600 hover:text-blue-800 transition-colors" onclick="viewMeeting('${meeting.id}')">عرض</button>
+                    <button class="text-green-600 hover:text-green-800 transition-colors" onclick="editMeeting('${meeting.id}')">تعديل</button>
+                    <button class="text-red-600 hover:text-red-800 transition-colors" onclick="confirmAction('${meeting.id}', 'delete')">حذف</button>
+                </td>
+            `;
+            meetingsTableBody.appendChild(row);
+        });
+    }
+
+    // دالة لعرض تفاصيل اجتماع
+    function viewMeeting(id) {
+        const meeting = meetings.find(m => m.id === id);
+        if (meeting) {
+            document.getElementById('view-title').textContent = meeting.title;
+            document.getElementById('view-date').textContent = meeting.date;
+            document.getElementById('view-time').textContent = meeting.time;
+            document.getElementById('view-location').textContent = meeting.location;
+            const attendeesList = document.getElementById('view-attendees');
+            attendeesList.innerHTML = '';
+            meeting.attendees.split(',').filter(Boolean).forEach(attendee => {
+                const li = document.createElement('li');
+                li.textContent = attendee.trim();
+                attendeesList.appendChild(li);
+            });
+            currentMeetingId = id;
+            showView('view-details');
+        }
+    }
+    
+    // دالة لإظهار نافذة التأكيد
+    function confirmAction(id, actionType) {
+        confirmModal.style.display = 'flex';
+        confirmYesBtn.textContent = (actionType === 'delete') ? 'نعم، احذف' : 'نعم، قم بالإنهاء';
+        modalMessage.textContent = (actionType === 'delete') ? 'هل أنت متأكد أنك تريد حذف هذا الاجتماع؟' : 'هل أنت متأكد أنك تريد إنهاء هذا الاجتماع؟';
+        
+        confirmYesBtn.onclick = () => {
+            if (actionType === 'delete') {
+                deleteMeeting(id);
+            } else {
+                deleteMeeting(currentMeetingId);
+                showView('list'); // العودة للقائمة بعد الإنهاء
+            }
+            confirmModal.style.display = 'none';
+        };
+
+        confirmNoBtn.onclick = () => {
+            confirmModal.style.display = 'none';
+        };
+    }
+
+    // دالة لحذف اجتماع
+    function deleteMeeting(id) {
+        meetings = meetings.filter(m => m.id !== id);
+        renderMeetingsTable();
+    }
+
+    // دالة لتعبئة النموذج ببيانات اجتماع للتعديل
+    function editMeeting(id) {
+        const meeting = meetings.find(m => m.id === id);
+        if (meeting) {
+            formTitle.textContent = 'تعديل الاجتماع';
+            document.getElementById('meeting-id').value = meeting.id;
+            document.getElementById('title').value = meeting.title;
+            document.getElementById('date').value = meeting.date;
+            document.getElementById('time').value = meeting.time;
+            document.getElementById('location').value = meeting.location;
+            document.getElementById('attendees').value = meeting.attendees;
+            showView('add-edit');
+        }
+    }
+
+    // معالجة الأحداث
+    document.addEventListener('DOMContentLoaded', () => {
+        showView('list');
+    });
+
+    addMeetingBtn.addEventListener('click', () => {
+        formTitle.textContent = 'إضافة اجتماع جديد';
+        meetingForm.reset();
+        document.getElementById('meeting-id').value = '';
+        showView('add-edit');
+    });
+
+    cancelFormBtn.addEventListener('click', () => {
+        showView('list');
+    });
+
+    backToListBtn.addEventListener('click', () => {
+        showView('list');
+    });
+
+    editDetailsBtn.addEventListener('click', () => {
+        editMeeting(currentMeetingId);
+    });
+
+    endMeetingBtn.addEventListener('click', () => {
+        confirmAction(currentMeetingId, 'end');
+    });
+
+    meetingForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const meetingId = document.getElementById('meeting-id').value;
+        const newMeeting = {
+            id: meetingId || Date.now().toString(),
+            title: document.getElementById('title').value,
+            date: document.getElementById('date').value,
+            time: document.getElementById('time').value,
+            location: document.getElementById('location').value,
+            attendees: document.getElementById('attendees').value,
+        };
+
+        if (meetingId) {
+            // تحديث اجتماع موجود
+            meetings = meetings.map(m => (m.id === meetingId ? newMeeting : m));
+        } else {
+            // إضافة اجتماع جديد
+            meetings.push(newMeeting);
+        }
+
+        showView('list');
+    });
+</script>
+
+</body>
+</html>
